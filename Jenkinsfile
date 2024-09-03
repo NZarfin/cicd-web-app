@@ -7,32 +7,11 @@ pipeline {
     }
 
     stages {
-        stage('Build Docker Image with Python') {
+        stage('Build Docker Image') {
             steps {
                 script {
-                    // Build the Docker image and tag it as python-env
-                    sh "docker build -t ${SCOPE}/${APP}:python-env -f Dockerfile ."
-                }
-            }
-        }
-
-        stage('Setup Python Environment') {
-            steps {
-                script {
-                    // Run the Docker container with the correct image and set up the virtual environment
-                    sh "docker run --rm -v \$PWD:/app -w /app ${SCOPE}/${APP}:python-env python -m venv venv"
-                }
-            }
-        }
-
-        stage('Install Dependencies') {
-            steps {
-                script {
-                    // Activate the virtual environment and install dependencies from requirements.txt
-                    sh '''
-                        source venv/bin/activate
-                        pip install --quiet --upgrade --requirement requirements.txt
-                    '''
+                    // Build the Docker image with the virtual environment already set up
+                    sh "docker build -t ${SCOPE}/${APP}:latest -f Dockerfile ."
                 }
             }
         }
@@ -40,12 +19,9 @@ pipeline {
         stage('Lint') {
             steps {
                 script {
-                    // Run flake8 and pylint inside the virtual environment
-                    sh '''
-                        source venv/bin/activate
-                        flake8 --ignore=E501,E231 *.py
-                        pylint --errors-only --disable=C0301 *.py
-                    '''
+                    // Run linting inside the Docker container using the virtual environment
+                    sh "docker run --rm ${SCOPE}/${APP}:latest /app/venv/bin/flake8 --ignore=E501,E231 /app/*.py"
+                    sh "docker run --rm ${SCOPE}/${APP}:latest /app/venv/bin/pylint --errors-only --disable=C0301 /app/*.py"
                 }
             }
         }
@@ -53,21 +29,8 @@ pipeline {
         stage('Unit Tests') {
             steps {
                 script {
-                    // Run unit tests inside the virtual environment
-                    sh '''
-                        source venv/bin/activate
-                        python -m unittest --verbose --failfast
-                    '''
-                }
-            }
-        }
-
-        stage('Build Docker Image with Application') {
-            steps {
-                script {
-                    // Build the final Docker image with the application, tagged with the current date and short commit hash
-                    TAG = "${new Date().format('yyyy-MM-dd')}-${sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()}"
-                    sh "docker build -t ${SCOPE}/${APP}:${TAG} -f Dockerfile ."
+                    // Run unit tests inside the Docker container using the virtual environment
+                    sh "docker run --rm ${SCOPE}/${APP}:latest /app/venv/bin/python -m unittest --verbose --failfast"
                 }
             }
         }
@@ -76,7 +39,7 @@ pipeline {
             steps {
                 script {
                     // Run the Docker container on port 8081
-                    sh "docker run --rm -d -p 8081:8081 --name ${APP} ${SCOPE}/${APP}:${TAG}"
+                    sh "docker run --rm -d -p 8081:8081 --name ${APP} ${SCOPE}/${APP}:latest"
                 }
             }
         }

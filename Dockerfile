@@ -1,5 +1,11 @@
-# Use a slim Python image as the base
-FROM python:3.9-slim
+# Use Alpine as the base image
+FROM alpine:3.18
+
+# Install Python 3 and pip
+RUN apk add --no-cache python3 py3-pip
+
+# Upgrade pip
+RUN pip3 install --no-cache --upgrade pip
 
 # Set the working directory in the container to /app
 WORKDIR /app
@@ -7,15 +13,15 @@ WORKDIR /app
 # Copy the current directory contents into the container at /app
 COPY . /app
 
-# Install Python dependencies from requirements.txt
-RUN pip install --upgrade pip && \
-    pip install -r requirements.txt
+# Create a virtual environment and install dependencies from requirements.txt
+RUN python3 -m venv /app/venv && \
+    /app/venv/bin/pip install --no-cache -r requirements.txt
 
 # Expose the application on port 8081
 EXPOSE 8081
 
-# Set the entrypoint to Python, so you can run Python commands directly
-ENTRYPOINT ["python"]
+# Set the entrypoint to use the virtual environment's Python
+ENTRYPOINT ["/app/venv/bin/python"]
 
 # Default command is to run the Flask application
 CMD ["/app/app.py"]
