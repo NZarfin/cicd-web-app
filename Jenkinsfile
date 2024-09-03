@@ -20,18 +20,25 @@ pipeline {
         }
 
         stage('Start MySQL Service') {
-            steps {
-                // Start MySQL container
-                sh '''
-                docker run --name mysql-db -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=${DB_NAME} -e MYSQL_USER=${DB_USER} -e MYSQL_PASSWORD=${DB_PASSWORD} -d mysql:latest
-                '''
-                
-                // Wait for MySQL to be ready
-                sh '''
-                sleep 30
-                '''
-            }
-        }
+    steps {
+        // Stop and remove any existing MySQL container
+        sh '''
+        docker stop mysql-db || true
+        docker rm mysql-db || true
+        '''
+
+        // Start a new MySQL container
+        sh '''
+        docker run --name mysql-db -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=${DB_NAME} -e MYSQL_USER=${DB_USER} -e MYSQL_PASSWORD=${DB_PASSWORD} -d mysql:latest
+        '''
+
+        // Wait for MySQL to be ready
+        sh '''
+        sleep 30
+        '''
+    }
+}
+
 
         stage('Initialize Database') {
             steps {
