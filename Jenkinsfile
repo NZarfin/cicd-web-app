@@ -19,9 +19,11 @@ pipeline {
         stage('Run Linting') {
             steps {
                 script {
-                    // Run linting inside the Docker container using the virtual environment
-                    sh "docker run --rm ${SCOPE}/${APP}:latest sh -c '/app/venv/bin/flake8 --ignore=E501,E231 /app/*.py'"
-                    sh "docker run --rm ${SCOPE}/${APP}:latest sh -c '/app/venv/bin/pylint --errors-only --disable=C0301 /app/*.py'"
+                    // Run flake8 inside the Docker container using the virtual environment
+                    sh "docker run --rm ${SCOPE}/${APP}:latest sh -c '/app/venv/bin/flake8 --ignore=E501,E231 /app/test_app.py /app/test_cyclones.py'"
+
+                    // Run pylint inside the Docker container using the virtual environment
+                    sh "docker run --rm ${SCOPE}/${APP}:latest sh -c '/app/venv/bin/pylint --errors-only --disable=C0301 /app/test_app.py /app/test_cyclones.py'"
                 }
             }
         }
@@ -30,7 +32,7 @@ pipeline {
             steps {
                 script {
                     // Run unit tests inside the Docker container using the virtual environment
-                    sh "docker run --rm ${SCOPE}/${APP}:latest /app/venv/bin/python -m unittest --verbose --failfast"
+                    sh "docker run --rm ${SCOPE}/${APP}:latest /app/venv/bin/python -m unittest --verbose --failfast /app/test_app.py /app/test_cyclones.py"
                 }
             }
         }
@@ -44,6 +46,15 @@ pipeline {
             }
         }
 
+        stage('Enter Bash Shell (Optional)') {
+            steps {
+                script {
+                    // Optionally run the container with a bash shell
+                    // Uncomment the following line to use this step
+                    // sh "docker run --rm -it -v $PWD:/app -w /app ${SCOPE}/${APP}:latest /bin/bash"
+                }
+            }
+        }
 
         stage('Clean Up') {
             steps {
@@ -72,4 +83,3 @@ pipeline {
         }
     }
 }
-
