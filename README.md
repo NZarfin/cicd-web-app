@@ -1,12 +1,14 @@
-# Build Status Badge: ![](https://github.com/automate6500/python-web-app-cicd/workflows/Pipeline/badge.svg)
+# Build Status Badge
+![](https://github.com/automate6500/python-web-app-cicd/workflows/Pipeline/badge.svg)
 
 # Use Case: Continuous Integration
-Demonstrating continuous integration with GitHub Actions
+This project demonstrates continuous integration with a Jenkins pipeline.
 
-Files include:
+## Files Included:
 
-- Python web app and requirements.txt
-- Dockerfile for creating a container for the app
-- CI/CD pipeline styled workflow triggered on push
+- **Python web app** and `requirements.txt`
+- **Dockerfile** for creating a container for the app
+- **Jenkins pipeline** script (`Jenkinsfile`) that automates the CI/CD process, triggered on code changes pushed to the repository.
 
-:D
+# cicd-web-app
+
