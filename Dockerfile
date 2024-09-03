@@ -25,7 +25,3 @@ ENTRYPOINT ["/app/venv/bin/python"]
 
 # Default command is to run the Flask application
 CMD ["/app/app.py"]
-
-# Optional command to override the CMD and enter bash
-CMD ["/bin/bash"]
-
