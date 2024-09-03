@@ -1,18 +1,20 @@
-# Use the official Python image
-FROM python:3.9-slim
+FROM python:3.9-slim as compiler
+ENV PYTHONUNBUFFERED 1
 
-# Set the working directory in the container to /app
-WORKDIR /app
+WORKDIR /app/
 
-# Copy the current directory contents into the container at /app
-COPY . /app
+RUN python -m venv /opt/venv
+# Enable venv
+ENV PATH="/opt/venv/bin:$PATH"
 
-# Install any needed packages specified in requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+COPY ./requirements.txt /app/requirements.txt
+RUN pip install -Ur requirements.txt
 
-# Make sure bash is installed (though it should be in the official Python image)
-RUN apt-get update && apt-get install -y bash
+FROM python:3.9-slim as runner
+WORKDIR /app/
+COPY --from=compiler /opt/venv /opt/venv
 
-# Run the application
-CMD ["bash"]
-
+# Enable venv
+ENV PATH="/opt/venv/bin:$PATH"
+COPY . /app/
+CMD ["python", "app.py", ]
