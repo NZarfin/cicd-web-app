@@ -4,68 +4,87 @@ pipeline {
     environment {
         APP = 'target-app'
         SCOPE = 'user99'
-        TAG = "${new Date().format('yyyy-MM-dd')}-${sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()}"
     }
 
     stages {
-        stage('Install Dependencies') {
+        stage('Setup Python Environment') {
             steps {
                 script {
-                    sh 'pip install --quiet --upgrade --requirement requirements.txt'
+                    // Set up Python virtual environment
+                    sh 'python3 -m venv venv'
+                    sh 'source venv/bin/activate'
+                    
+                    // Generate the TAG variable after setting up the environment
+                    TAG = "${new Date().format('yyyy-MM-dd')}-${sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()}"
                 }
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                // Install required Python packages inside the virtual environment
+                sh '''
+                    source venv/bin/activate
+                    pip install --quiet --upgrade --requirement requirements.txt
+                '''
             }
         }
 
         stage('Lint') {
             steps {
-                script {
-                    sh 'flake8 --ignore=E501,E231 *.py'
-                    sh 'pylint --errors-only --disable=C0301 --disable=C0326 *.py'
-                }
+                // Run flake8 and pylint inside the virtual environment
+                sh '''
+                    source venv/bin/activate
+                    flake8 --ignore=E501,E231 *.py
+                    pylint --errors-only --disable=C0301 *.py
+                '''
             }
         }
 
         stage('Unit Tests') {
             steps {
-                script {
-                    sh 'python -m unittest --verbose --failfast'
-                }
+                // Run unit tests inside the virtual environment
+                sh '''
+                    source venv/bin/activate
+                    python -m unittest --verbose --failfast
+                '''
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    sh "docker build -t ${SCOPE}/${APP}:${TAG} ."
-                }
+                // Build Docker image with the generated TAG
+                sh "docker build -t ${SCOPE}/${APP}:${TAG} ."
             }
         }
 
         stage('Run Docker Container') {
             steps {
-                script {
-                    sh "docker run --rm -d -p 5000:5000 --name ${APP} ${SCOPE}/${APP}:${TAG}"
-                }
+                // Run the Docker container on port 5000
+                sh "docker run --rm -d -p 5000:5000 --name ${APP} ${SCOPE}/${APP}:${TAG}"
             }
         }
 
         stage('Clean Up') {
             steps {
-                script {
-                    sh "docker container stop ${APP} || true"
-                    sh "rm -rf ./__pycache__ ./tests/__pycache__"
-                    sh "rm -f .*~ *.pyc"
-                }
+                // Clean up Python environment, but do not stop the running Docker container
+                sh '''
+                    rm -rf ./__pycache__ ./tests/__pycache__
+                    rm -f .*~ *.pyc
+                '''
             }
         }
     }
 
     post {
         always {
-            script {
-                // Add any cleanup or notifications you need here
-                echo 'Pipeline execution finished.'
-            }
+            echo 'Pipeline execution finished.'
+        }
+        failure {
+            // If the pipeline fails, stop and remove the Docker container
+            sh '''
+                docker rm -f ${APP} || true
+            '''
         }
     }
 }
