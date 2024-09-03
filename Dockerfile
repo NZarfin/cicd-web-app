@@ -1,27 +1,20 @@
-# Use Alpine as the base image
-FROM alpine:3.18
+FROM python:3.9-slim as compiler
+ENV PYTHONUNBUFFERED 1
 
-# Install Python 3, pip, and bash
-RUN apk add --no-cache python3 py3-pip bash
+WORKDIR /app/
 
-# Upgrade pip
-RUN pip3 install --no-cache --upgrade pip
+RUN python -m venv /opt/venv
+# Enable venv
+ENV PATH="/opt/venv/bin:$PATH"
 
-# Set the working directory in the container to /app
-WORKDIR /app
+COPY ./requirements.txt /app/requirements.txt
+RUN pip install -Ur requirements.txt
 
-# Copy the current directory contents into the container at /app
-COPY . /app
+FROM python:3.9-slim as runner
+WORKDIR /app/
+COPY --from=compiler /opt/venv /opt/venv
 
-# Create a virtual environment and install dependencies from requirements.txt
-RUN python3 -m venv /app/venv && \
-    /app/venv/bin/pip install --no-cache -r requirements.txt
-
-# Expose the application on port 8081
-EXPOSE 8081
-
-# Default entrypoint is to use the virtual environment's Python
-ENTRYPOINT ["/app/venv/bin/python"]
-
-# Default command is to run the Flask application
-CMD ["/app/app.py"]
+# Enable venv
+ENV PATH="/opt/venv/bin:$PATH"
+COPY . /app/
+CMD ["python", "app.py"]

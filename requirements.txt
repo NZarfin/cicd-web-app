@@ -4,3 +4,4 @@ pip
 pylint
 pytest
 pytest-flask
+mysql-connector-python
