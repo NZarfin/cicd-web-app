@@ -1,5 +1,10 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'python:3.9' // Use an official Python Docker image with Python 3.9
+            args '-u root' // Run as root to install packages and set up the environment
+        }
+    }
 
     environment {
         APP = 'target-app'
@@ -7,10 +12,19 @@ pipeline {
     }
 
     stages {
+        stage('Build Docker Image with Python') {
+            steps {
+                script {
+                    // Build a Docker image using the relative path to Dockerfile
+                    sh "docker build -t ${SCOPE}/${APP}:python-env -f Dockerfile ."
+                }
+            }
+        }
+
         stage('Setup Python Environment') {
             steps {
                 script {
-                    // Set up Python virtual environment
+                    // Set up Python virtual environment inside the Docker container
                     sh 'python3 -m venv venv'
                     sh 'source venv/bin/activate'
                     
@@ -22,7 +36,7 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                // Install required Python packages inside the virtual environment
+                // Install required Python packages inside the virtual environment using the relative path to requirements.txt
                 sh '''
                     source venv/bin/activate
                     pip install --quiet --upgrade --requirement requirements.txt
@@ -53,15 +67,15 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                // Build Docker image with the generated TAG
-                sh "docker build -t ${SCOPE}/${APP}:${TAG} ."
+                // Build Docker image with the generated TAG using the relative path to Dockerfile
+                sh "docker build -t ${SCOPE}/${APP}:${TAG} -f Dockerfile ."
             }
         }
 
         stage('Run Docker Container') {
             steps {
-                // Run the Docker container on port 5000
-                sh "docker run --rm -d -p 5000:5000 --name ${APP} ${SCOPE}/${APP}:${TAG}"
+                // Run the Docker container on port 8081
+                sh "docker run --rm -d -p 8081:8081 --name ${APP} ${SCOPE}/${APP}:${TAG}"
             }
         }
 
