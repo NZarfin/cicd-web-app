@@ -44,7 +44,7 @@ pipeline {
             steps {
                 // Create the mascots table and populate it with initial data
                 sh '''
-                docker exec -i mysql-db mysql -u${DB_USER} -p${DB_PASSWORD} ${DB_NAME} <<EOF
+                docker exec -i mysql-db mysql -unadavsecureDB -pnadavsecureDBprivate mascots_db <<EOF
                 CREATE TABLE IF NOT EXISTS mascots (
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     guid VARCHAR(36) NOT NULL,
@@ -57,6 +57,7 @@ pipeline {
                 INSERT INTO mascots (guid, mascot, school, nickname, location, latlong) VALUES
                 ('05024756-765e-41a9-89d7-1407436d9a58', 'Cy', 'Iowa State University', 'Cyclones', 'Ames, IA, USA', '42.026111,-93.648333');
                 EOF
+
                 '''
             }
         }
