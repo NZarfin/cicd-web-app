@@ -46,16 +46,6 @@ pipeline {
             }
         }
 
-        stage('Enter Bash Shell (Optional)') {
-            steps {
-                script {
-                    // Optionally run the container with a bash shell
-                    // Uncomment the following line to use this step
-                    // sh "docker run --rm -it -v $PWD:/app -w /app ${SCOPE}/${APP}:latest /bin/bash"
-                }
-            }
-        }
-
         stage('Clean Up') {
             steps {
                 script {
