@@ -20,12 +20,12 @@ pipeline {
             steps {
                 // Run flake8 for linting
                 sh '''
-                docker run --rm ${SCOPE}/${APP}:latest /app/venv/bin/flake8 --ignore=E501,E231 /app/test_app.py /app/test_cyclones.py
+                docker run --rm ${SCOPE}/${APP}:latest /opt/venv/bin/flake8 --ignore=E501,E231 /app/test_app.py /app/test_cyclones.py
                 '''
 
                 // Run pylint for additional linting
                 sh '''
-                docker run --rm ${SCOPE}/${APP}:latest /app/venv/bin/pylint --errors-only --disable=C0301 /app/test_app.py /app/test_cyclones.py
+                docker run --rm ${SCOPE}/${APP}:latest /opt/venv/bin/pylint --errors-only --disable=C0301 /app/test_app.py /app/test_cyclones.py
                 '''
             }
         }
