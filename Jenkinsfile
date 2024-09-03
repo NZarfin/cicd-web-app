@@ -1,10 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'python:3.9' // Use an official Python Docker image with Python 3.9
-            args '-u root' // Run as root to install packages and set up the environment
-        }
-    }
+    agent any
 
     environment {
         APP = 'target-app'
@@ -25,8 +20,8 @@ pipeline {
             steps {
                 script {
                     // Set up Python virtual environment inside the Docker container
-                    sh 'python3 -m venv venv'
-                    sh 'source venv/bin/activate'
+                    sh "docker run --rm -v \$PWD:/app -w /app ${SCOPE}/${APP}:python-env python3 -m venv venv"
+                    sh "source venv/bin/activate"
                     
                     // Generate the TAG variable after setting up the environment
                     TAG = "${new Date().format('yyyy-MM-dd')}-${sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()}"
@@ -36,7 +31,7 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                // Install required Python packages inside the virtual environment using the relative path to requirements.txt
+                // Install required Python packages inside the virtual environment
                 sh '''
                     source venv/bin/activate
                     pip install --quiet --upgrade --requirement requirements.txt
