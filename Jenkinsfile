@@ -5,8 +5,8 @@ pipeline {
         APP = 'target-app'
         SCOPE = 'user99'
         DB_NAME = 'mascots_db'
-        DB_USER = 'your_user'
-        DB_PASSWORD = 'your_password'
+        DB_USER = 'nadavsecureDB'
+        DB_PASSWORD = 'nadavsecureDBprivate'
     }
 
     stages {
