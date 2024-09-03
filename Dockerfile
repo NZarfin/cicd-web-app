@@ -1,26 +1,23 @@
-# use a python image
-FROM python:3.6
+# Use a Python image
+FROM python:3.9-slim
 
-# set the working directory in the container to /app
+# Set the working directory in the container to /app
 WORKDIR /app
 
-# add the current directory to the container as /app
+# Add the current directory to the container as /app
 COPY . /app
 
-# pip install flask
+# Install Python dependencies from requirements.txt
 RUN pip install --upgrade pip && \
-    pip install \
-        Flask \
-        awscli \
-        flake8 \
-        pylint \
-        pytest \
-        pytest-flask
+    pip install -r requirements.txt
 
-# expose the default flask port
-EXPOSE 8080
+# Expose the application on port 8081
+EXPOSE 8081
 
-# execute the Flask app
-ENTRYPOINT ["python"]
+# Set up the health check on port 8081
 HEALTHCHECK CMD curl --fail http://localhost:8081/ || exit 1
+
+# Execute the Flask app
+ENTRYPOINT ["python"]
 CMD ["/app/app.py"]
+
