@@ -34,7 +34,7 @@ pipeline {
             steps {
                 // Execute unit tests
                 sh '''
-                docker run --rm ${SCOPE}/${APP}:latest /app/venv/bin/python -m unittest --verbose --failfast /app/test_app.py /app/test_cyclones.py
+                docker run --rm ${SCOPE}/${APP}:latest /opt/venv/bin/python3 -m unittest --verbose --failfast /app/test_app.py /app/test_cyclones.py
                 '''
             }
         }
